@@ -10,7 +10,7 @@ MEMORY
 /* define a global symbol _stack  */
 
 _stack = ORIGIN(ram) + LENGTH(ram);
-_stack_size = 512;
+_stack_size = 4096;
 
 /* now define the output sections  */
 

@@ -10,6 +10,7 @@
  *
  * Created on August 10, 2016, 11:02 AM
  */
+//#include <config.h>
 
 #ifndef SECURITY_H
 #define SECURITY_H
@@ -18,7 +19,8 @@
 extern "C" {
 #endif
 
-int isVmTrust(void);
+    int isVmTrust(void);
+    int identifyHypercalls(void);
 
 
 #ifdef __cplusplus

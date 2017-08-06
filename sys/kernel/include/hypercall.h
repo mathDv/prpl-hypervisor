@@ -19,8 +19,11 @@ This code was written by Carlos Moratelli at Embedded System Group (GSE) at PUCR
 
 #include <types.h>
 #include <hypercall_defines.h>
+#include <config.h>
 
 int32_t register_hypercall(hypercall_t* hyper, uint32_t code);
 void hypercall_execution();
+
+unsigned char hypercallsAuthorized[NVMACHINES][HCALL_TABLE_SIZE];
 
 #endif

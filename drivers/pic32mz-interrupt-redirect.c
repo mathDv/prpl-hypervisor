@@ -49,7 +49,8 @@ This code was written by Carlos Moratelli at Embedded System Group (GSE) at PUCR
 #include <libc.h>
 #include <vm.h>
 #include <guest_interrupts.h>
-
+#include "malloc.h"
+#include "interrupts.h"
 /**
  * @struct
  * @brief Makes the association between interrupts and guests. 

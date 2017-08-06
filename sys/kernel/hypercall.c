@@ -13,7 +13,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 This code was written by Carlos Moratelli at Embedded System Group (GSE) at PUCRS/Brazil.
 
-*/
+ */
 
 /**
  * @file hypercall.c
@@ -33,6 +33,7 @@ This code was written by Carlos Moratelli at Embedded System Group (GSE) at PUCR
 #include <globals.h>
 #include <tlb.h>
 #include <mips_cp0.h>
+#include <libc.h>
 
 /**
  * @brief Hypercalls table 
@@ -52,15 +53,15 @@ int32_t register_hypercall(hypercall_t* hyper, uint32_t code){
     if (code > HCALL_TABLE_SIZE-1 || code < 0){
         return HCALL_CODE_INVALID;
     }
-    
+
     /* Hypercall code already registered. */
     if(hypercall_table[code]){
         return HCALL_CODE_USED;
     }
-    
+
     /* Register the hypercall */
     hypercall_table[code] = hyper;
-    
+
     return code;
 }
 
@@ -69,16 +70,26 @@ int32_t register_hypercall(hypercall_t* hyper, uint32_t code){
  */
 void hypercall_execution(){
     /* Get the hypervall code */
-    uint32_t code = getHypercallCode(); 
-    
+    uint32_t code = getHypercallCode();
+//    uint32_t guest = getGuestID();//TODO -fix - wrong guest ID
+//    printf("\n\rGuest: %d\n", guest);
+
     /* Hypercall not implemented */
-    if ( (code > HCALL_TABLE_SIZE-1) || (code < 0) || (!hypercall_table[code])){
+    if ((code > HCALL_TABLE_SIZE - 1) || (code < 0) || (!hypercall_table[code])) {
         MoveToPreviousGuestGPR(REG_V0, HCALL_NOT_IMPLEMENTED);
         return;
     }
-    
-    /* Execute the hypercall */
-    hypercall_table[code]();
-    
+
+    /*verifies authorized hypercall*/   
+    //    if(hypercallsAuthorized(getGuestID))
+    if (hypercallsAuthorized[0][code]==1) {
+        /* Execute the hypercall */
+        hypercall_table[code]();
+    }
+    //TODO - uncomment this code
+//    else{
+//        ERROR("Error: hypercall not authorized");
+//    }
+
 }
 
