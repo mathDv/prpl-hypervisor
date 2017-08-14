@@ -21,7 +21,8 @@ extern "C" {
 
     int isVmTrust(void);
     int identifyHypercalls(void);
-
+    void TRNG_Generator(void);
+//    int pic32_rng(uECC_word_t *dest, unsigned size);
 
 #ifdef __cplusplus
 }

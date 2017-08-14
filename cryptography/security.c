@@ -18,9 +18,12 @@
 #include <hypercall_defines.h>
 #include <hypercall.h>
 
+#define NUM_ECC_DIGITS 32
+//#define DEBUG 
+#define NUM_TESTS 200
 
-#define DEBUG 1
-#define NUM_TESTS 2
+static int diffieHelman(void);
+static int ecdsa(void);
 
 int isVmTrust(void) {
 
@@ -187,7 +190,7 @@ int identifyHypercalls(void) {
 
 
     uint32_t guestID = getGuestID();
-//    printf("\n\rGuestID: %d", guestID);
+    //    printf("\n\rGuestID: %d", guestID);
 
     //    int count = 0;
 
@@ -262,7 +265,7 @@ int identifyHypercalls(void) {
                     //                    break;
                 case 0x50:
                     if ((lAddrVm[lCount + 2] == 0x00) && (lAddrVm[lCount + 3] == 0x42)) {
-//                        printf("\n\rFind Hyper 0xA\n");
+                        //                        printf("\n\rFind Hyper 0xA\n");
                         hypercallsAuthorized[guestID][HCALL_USB_SEND_DATA] = 1;
                     }
                     break;
@@ -313,7 +316,6 @@ int identifyHypercalls(void) {
 #ifdef DEBUG
     finalCountTotal = getCounter();
     printf("\n\rTime TOTAL: %d", (finalCountTotal - initialCountTotal));
-#endif
 
     printf("\n\rshow hypercalls table\n");
     int a = 0;
@@ -329,7 +331,243 @@ int identifyHypercalls(void) {
         }
         printf("\n\r");
     }
+#endif
     hypercallsAuthorized[guestID][HCALL_READ_ADDRESS] = 0;
     return 0;
+
+}
+
+/**
+ * @brief generate 32bit TRNG
+ * \param void
+ * \return 32bit number generated
+ * 
+ */
+void TRNG_Generator(void) {
+
+    ecdsa();
+    return;
+
+    diffieHelman();
+    return;
+    /*
+     * 1 - ler registrador de ID - ok
+     * 2 - ler registrador de versao -ok
+     * 2 - ler registrador de revisao - ok
+     * 3 - iniciar RNG - ok
+     * 4 - gerar 32 bits    - ok
+     * 
+     * 5 - substituir funcao para geracao chaves - ok
+     * 5 - gerar par de chave - ok
+     * 6 - medir tempo para geracao chaver - ok
+     *   
+     * 7 - assinar hash
+     * 8 - medir tempo assinatura hash
+     * 9 - teste diffie hellmam and others
+     * 9 - "explorando segurança com mips pic32"
+     */
+    //#ifdef DEBUG
+
+    //    pic32_rng(_private, 32);
+
+    //    printf("\n");
+    //    for(;i<4;i++){
+    //        printf("%x", _private[i]);
+    //    }
+    //    printf("\n");
+
+    //#ifdef DEBUG
+
+    //#endif
+    printf("\n\rTime make keys\n");
+    uint32_t initialCountTotal = 0, finalCountTotal = 0;
+    initialCountTotal = getCounter();
+    uint8_t private[NUM_ECC_DIGITS];
+    uint8_t public[NUM_ECC_DIGITS * 2];
+    //    uint8_t sig[64] = {0}; //sigature - feito com a chave privada do emissor e entregue para que tem a chave publica verificar.
+    //generate private/public key
+    if (!uECC_make_key(public, private, uECC_secp256k1())) {
+        printf("uECC_make_key() failed\n");
+        //        return 1;
+    }
+    //valida public key
+    if (!uECC_valid_public_key(public, uECC_secp256k1())) {
+        //        printf("uECC_valid_public_key() failed\n");
+        //        return 1;
+    } else {
+        //        printf("Public Key OK\n");
+    }
+
+    finalCountTotal = getCounter();
+    printf("\n\rTime TOTAL: %d", (finalCountTotal - initialCountTotal));
+
+
+    //show private key
+    printf("\nuint8_t private[32] = {");
+    vli_print(private, NUM_ECC_DIGITS);
+    printf("};\n");
+    printf("\n\n");
+    //show public key
+    printf("uint8_t public[64] = {");
+    vli_print(public, NUM_ECC_DIGITS * 2);
+    printf("};\n");
+    //    printf("\n\n");
+    /********************/
+    //#endif
+}
+
+static int diffieHelman(void) {
+
+
+    printf("\n\rTime DH\n");
+    uint32_t initialCountTotal = 0, finalCountTotal = 0, initialCountmakeKey = 0,
+            initialCountSharedKey = 0, finalCountmakeKeyTotal = 0, finalCountSharedKeyTotal = 0;
+
+
+
+    uint32_t TotalDH = 0, TotalMakeKeys = 0, TotalShared = 0;
+
+    int i = 1;
+    uint8_t private1[32] = {0};
+    uint8_t private2[32] = {0};
+    uint8_t public1[64] = {0};
+    uint8_t public2[64] = {0};
+    uint8_t secret1[32] = {0};
+    uint8_t secret2[32] = {0};
+
+    initialCountTotal = getCounter();
+
+    for (i = 0; i < NUM_TESTS; i++) {
+        initialCountmakeKey = getCounter();
+        if (!uECC_make_key(public1, private1, uECC_secp256k1()) ||
+            !uECC_make_key(public2, private2, uECC_secp256k1())) {
+            printf("uECC_make_key() failed\n");
+            return 1;
+        }
+        finalCountmakeKeyTotal = getCounter();
+
+        initialCountSharedKey = getCounter();
+        if (!uECC_shared_secret(public2, private1, secret1, uECC_secp256k1())) {
+            printf("shared_secret() failed (1)\n");
+            return 1;
+        }
+        finalCountSharedKeyTotal = getCounter();
+
+        //        if (!uECC_shared_secret(public1, private2, secret2, uECC_secp256k1())) {
+        //            printf("shared_secret() failed (2)\n");
+        //            return 1;
+        //        }
+
+
+
+
+
+        TotalMakeKeys += (finalCountmakeKeyTotal - initialCountmakeKey);
+        TotalShared += (finalCountSharedKeyTotal - initialCountSharedKey);
+    }
+    finalCountTotal = getCounter();
+    TotalDH = (finalCountTotal - initialCountTotal);
+
+    printf("\n\rTime TOTAL: %d\n", TotalDH / NUM_TESTS);
+    printf("\n\rTime TOTAL MAKEKEYS: %d\n", TotalMakeKeys / NUM_TESTS);
+    printf("\n\rTime TOTAL SHARED KEYS: %d\n", TotalShared / NUM_TESTS);
+
+    //    if (memcmp(secret1, secret2, sizeof (secret1)) != 0) {
+    //    printf("Shared secrets are not identical!\n");
+    printf("Private key 1 = ");
+    vli_print(private1, 32);
+    printf("\n");
+    printf("Private key 2 = ");
+    vli_print(private2, 32);
+    printf("\n");
+    printf("Public key 1 = ");
+    vli_print(public1, 64);
+    printf("\n");
+    printf("Public key 2 = ");
+    vli_print(public2, 64);
+    printf("\n");
+    printf("Shared secret 1 = ");
+    vli_print(secret1, 32);
+    printf("\n");
+    printf("Shared secret 2 = ");
+    vli_print(secret2, 32);
+    printf("\n");
+    //    }
+
+
+    return 1;
+
+}
+
+static int ecdsa(void) {
+
+    printf("\n\rTime ecdsa\n");
+    uint32_t initialCountTotal = 0, finalCountTotal = 0, initialCountmakeKey = 0,
+            initialCountSign = 0, finalCountmakeKeyTotal = 0, finalCountSignTotal = 0,
+            initialCountVerify = 0, finalCountVerify = 0;
+
+    uint32_t TotalECDSA = 0, TotalMakeKeys = 0, TotalSign = 0, TotalTotalSign = 0;
+
+    int i;
+    uint8_t private[32] = {0};
+    uint8_t public[64] = {0};
+    uint8_t hash[32] = {0};
+    uint8_t sig[64] = {0};
+
+    initialCountTotal = getCounter();
+
+    for (i = 0; i < NUM_TESTS; i++) {
+        initialCountmakeKey = getCounter();
+        if (!uECC_make_key(public, private, uECC_secp256k1())) {
+            printf("uECC_make_key() failed\n");
+            return 1;
+        }
+        finalCountmakeKeyTotal = getCounter();
+        memcpy(hash, public, sizeof (hash));
+
+        initialCountSign = getCounter();
+        if (!uECC_sign(private, hash, sizeof (hash), sig, uECC_secp256k1())) {
+            printf("uECC_sign() failed\n");
+            return 1;
+        }
+        finalCountSignTotal = getCounter();
+
+        initialCountVerify = getCounter();
+        if (!uECC_verify(public, hash, sizeof (hash), sig, uECC_secp256k1())) {
+            printf("uECC_verify() failed\n");
+            return 1;
+        }
+        finalCountVerify = getCounter();
+
+
+        TotalMakeKeys += (finalCountmakeKeyTotal - initialCountmakeKey);
+        TotalSign += (finalCountSignTotal - initialCountSign);
+        TotalTotalSign += (finalCountVerify - initialCountVerify);
+    }
+
+    finalCountTotal = getCounter();
+    TotalECDSA = (finalCountTotal - initialCountTotal);
+
+    printf("\n\rTime TOTAL ECDSA: %d\n", TotalECDSA / NUM_TESTS);
+    printf("\n\rTime TOTAL MAKEKEYS: %d\n", TotalMakeKeys / NUM_TESTS);
+    printf("\n\rTime TOTAL SIGN MSG: %d\n", TotalSign / NUM_TESTS);
+    printf("\n\rTime TOTAL VERIFY MSG: %d\n", TotalTotalSign / NUM_TESTS);
+
+
+
+    printf("Private key  = ");
+    vli_print(private, 32);
+    printf("\n");
+    printf("public key  = ");
+    vli_print(public, 64);
+    printf("\n");
+    printf("SIG = ");
+    vli_print(sig, 64);
+    printf("\n");
+    printf("HASH = ");
+    vli_print(hash, 32);
+    printf("\n");
+
+    return 1;
 
 }

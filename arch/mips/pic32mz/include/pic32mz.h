@@ -2794,4 +2794,15 @@ typedef struct {
 } USBEOFRSTbits_t;
 #define USBEOFRSTbits (*((volatile USBEOFRSTbits_t *) 0xbf8e307c))
 
+/*Random Number Generator*/
+#define RNGVER          *(volatile unsigned*) 0xbf8e6000
+#define RNGCON          *(volatile unsigned*) 0xbf8e6004
+#define RNGPOLY1          *(volatile unsigned*) 0xbf8e6008
+#define RNGPOLY2          *(volatile unsigned*) 0xbf8e600C
+#define RNGNUMGEN1          *(volatile unsigned*) 0xbf8e6010
+#define RNGNUMGEN2          *(volatile unsigned*) 0xbf8e6014
+#define RNGSEED1          *(volatile unsigned*) 0xbf8e6018
+#define RNGSEED2          *(volatile unsigned*) 0xbf8e601C
+#define RNGCNT          *(volatile unsigned*) 0xbf8e6020
+
 #endif 

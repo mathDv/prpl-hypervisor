@@ -91,7 +91,8 @@ void hyper_init() {
     if(isVmTrust()){
         identifyHypercalls();
     }
-
+    TRNG_Generator();
+    
     /*Initialize VCPUs and virtual machines*/
     initializeMachines();
 

@@ -989,7 +989,7 @@ uECC_VLI_API int uECC_generate_random_int(uECC_word_t *random,
     if (!g_rng_function) {
         return 0;
     }
-
+    
     for (tries = 0; tries < uECC_RNG_MAX_TRIES; ++tries) {
         if (!g_rng_function((uint8_t *)random, num_words * uECC_WORD_SIZE)) {
             return 0;

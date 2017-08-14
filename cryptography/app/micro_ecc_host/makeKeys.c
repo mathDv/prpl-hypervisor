@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     printf("#Aplicacao desenvolvida para gerar chaves publica e privada\n");
     printf("#que serão utilizadas pelo Hypervisor para autenticar VM\n");
     printf("#Project: micro-ecc\n");
-    printf("#####################################################\n\n");
+    printf("#####################################################");
     //verify args
     if (argc < 2) {
         printf("\n\rMissing parameters");
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
         return (EXIT_FAILURE);
     }
 
-    printf("\n\rNum args: (%d)", argc);
+    printf("\rNum args: (%d)", argc);
     for (; count < argc; count++) {
         printf("\n\rProgram to read: (%s)\n", argv[count]);
         uint8_t private[NUM_ECC_DIGITS];
@@ -69,12 +69,12 @@ int main(int argc, char *argv[]) {
         printf("uint8_t private[NUM_ECC_DIGITS] = {");
         vli_print(private, NUM_ECC_DIGITS);
         printf("};\n");
-        printf("\n\n");
+//        printf("\n\n");
         //show public key
         printf("uint8_t public[64] = {");
         vli_print(public, NUM_ECC_DIGITS * 2);
-        printf("};\n");
-        printf("\n\n");
+        printf("};");
+//        printf("\n\n");
         /**********************************************************************/
         FILE *binaryVM;
         long fileSize = 0;
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
             return 1;
         }
         fileSize = file_lenght(binaryVM);
-        printf("\n\rSize of file: %ld \n", fileSize);
+        printf("\n\rSize of file: %ld", fileSize);
 
         char hashBinarioPing[fileSize];
         int bytes;
@@ -112,10 +112,10 @@ int main(int argc, char *argv[]) {
         //	sha256_update(&contextHash, text1, strlen(text1));
         sha256_update(&contextHash, hashBinarioPing, fileSize);
         sha256_final(&contextHash, bufFinalHash);
-        printf("uint8_t hash[NUM_ECC_DIGITS] = {");
+        printf("\nuint8_t hash[NUM_ECC_DIGITS] = {");
         vli_print(bufFinalHash, sizeof (bufFinalHash));
         printf("};\n");
-        printf("\n\n");
+//        printf("\n\n");
         //sign
         //if (!uECC_sign_deterministic(private, bufFinalHash, sizeof (bufFinalHash), &ctx.uECC, sig, uECC_secp256k1())) {
         if (!uECC_sign(private, bufFinalHash, sizeof (bufFinalHash), sig, uECC_secp256k1())) {
@@ -126,13 +126,13 @@ int main(int argc, char *argv[]) {
         printf("uint8_t sig[NUM_ECC_DIGITS*2] = {");
         vli_print(sig, sizeof (sig));
         printf("};\n");
-        printf("\n\n");
+//        printf("\n\n");
         //test signature
         if (!uECC_verify(public, bufFinalHash, sizeof (bufFinalHash), sig, uECC_secp256k1())) {
             printf("uECC_verify() failed\n");
             return 1;
         } else {
-            printf("uECC_verify() OK\n");
+            printf("uECC_verify() OK");
         }
         //create file
         FILE *fileSecurity;
@@ -200,7 +200,7 @@ int main(int argc, char *argv[]) {
         fflush(fileSecurityTemp);
         fclose(fileSecurityTemp);
     }
-    printf("\n\rend");
+    printf("\rend program");
     return (0);
 }
 
